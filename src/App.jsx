@@ -71,6 +71,16 @@ function App() {
         <span className="floating-heart heart-five">♡</span>
         <span className="floating-heart heart-six">♥</span>
         <span className="floating-heart heart-seven">♡</span>
+        <span className="floating-heart heart-eight">♥</span>
+        <span className="floating-heart heart-nine">♡</span>
+        <span className="floating-heart heart-ten">♥</span>
+        <span className="floating-heart heart-eleven">♡</span>
+        <span className="floating-heart heart-twelve">♥</span>
+      </div>
+      <div className="roaming-cats" aria-hidden="true">
+        <span className="roaming-cat cat-one">ฅ^•ﻌ•^ฅ</span>
+        <span className="roaming-cat cat-two">ฅ^•ﻌ•^ฅ</span>
+        <span className="roaming-cat cat-three">ฅ^•ﻌ•^ฅ</span>
       </div>
       <div className="sparkle sparkle-one" aria-hidden="true">✦</div>
       <div className="sparkle sparkle-two" aria-hidden="true">✧</div>

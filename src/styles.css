@@ -558,6 +558,7 @@ h1 {
 :root {
   color: #f7eaf0;
   background: #02060e;
+  color-scheme: dark;
 }
 
 .page-shell {
@@ -685,6 +686,46 @@ h1 {
   animation: float-heart 12s linear infinite;
 }
 
+.heart-eight {
+  left: 15%;
+  color: rgba(255, 116, 151, 0.48);
+  font-size: 13px;
+  animation-delay: 6s;
+  animation-duration: 19s;
+}
+
+.heart-nine {
+  left: 32%;
+  color: rgba(255, 192, 216, 0.38);
+  font-size: 22px;
+  animation-delay: 10s;
+  animation-duration: 16s;
+}
+
+.heart-ten {
+  left: 68%;
+  color: rgba(255, 116, 151, 0.44);
+  font-size: 16px;
+  animation-delay: 3s;
+  animation-duration: 20s;
+}
+
+.heart-eleven {
+  left: 84%;
+  color: rgba(255, 192, 216, 0.4);
+  font-size: 12px;
+  animation-delay: 12s;
+  animation-duration: 17s;
+}
+
+.heart-twelve {
+  left: 54%;
+  color: rgba(255, 116, 151, 0.42);
+  font-size: 20px;
+  animation-delay: 8s;
+  animation-duration: 18s;
+}
+
 .heart-one {
   left: 8%;
   font-size: 24px;
@@ -734,6 +775,61 @@ h1 {
   font-size: 15px;
   animation-delay: 11s;
   animation-duration: 18s;
+}
+
+.roaming-cats {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.roaming-cat {
+  position: absolute;
+  display: inline-block;
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 145, 187, 0.2);
+  border-radius: 999px;
+  background: rgba(29, 8, 17, 0.9);
+  color: #ffb6d0;
+  font-size: 14px;
+  line-height: 1;
+  text-shadow: 0 0 10px rgba(255, 105, 163, 0.35);
+  animation: roam-cat 9s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.cat-one {
+  top: 16%;
+  left: 4%;
+  animation-delay: -2s;
+}
+
+.cat-two {
+  top: 58%;
+  right: 3%;
+  animation-delay: -6s;
+  animation-duration: 11s;
+}
+
+.cat-three {
+  bottom: 8%;
+  left: 11%;
+  animation-delay: -4s;
+  animation-duration: 13s;
+}
+
+@keyframes roam-cat {
+  0% {
+    transform: translate3d(-4px, 2px, 0) rotate(-5deg);
+  }
+  50% {
+    transform: translate3d(22px, -9px, 0) rotate(4deg);
+  }
+  100% {
+    transform: translate3d(8px, 5px, 0) rotate(-2deg);
+  }
 }
 
 @keyframes float-heart {
@@ -895,35 +991,81 @@ h1 {
   width: 42px;
   height: 2px;
   border-radius: 2px;
-  background: #e6b4bb;
+  background: #ff6688;
   content: "";
   transform: translateX(-50%);
 }
 
+.letter-panel {
+  border-color: rgba(255, 116, 151, 0.28);
+  background:
+    linear-gradient(135deg, #39111c 0 14px, transparent 14px) top left / 28px 28px no-repeat,
+    linear-gradient(225deg, #39111c 0 14px, transparent 14px) top right / 28px 28px no-repeat,
+    linear-gradient(160deg, #170d15, #0b0b13 58%, #1d0911);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.38), inset 0 0 0 5px rgba(255, 116, 151, 0.025);
+}
+
 .letter-panel .eyebrow {
-  color: #a45b72;
+  color: #ff8eaa;
 }
 
 .letter-panel h1 {
-  color: #53343c;
+  color: #fff0f4;
 }
 
 .letter-panel .letter-copy {
-  color: #665158;
+  color: #e0cbd2;
 }
 
 .letter-panel .letter-copy p:first-child,
 .letter-panel .signature,
 .letter-panel .question {
-  color: #563a42;
+  color: #ffe3eb;
 }
 
 .letter-panel .signature span {
-  color: #be647f;
+  color: #ff6f9c;
 }
 
 .letter-panel .tiny-note {
-  color: #866c73;
+  color: #c99aaa;
+}
+
+.button:focus-visible {
+  outline-color: #ff7b9f;
+}
+
+.button-primary {
+  border-color: #ff7597;
+  color: #fff8fa;
+  background: linear-gradient(135deg, #86152b, #b91f45);
+  box-shadow: 0 7px 20px rgba(163, 5, 5, 0.28), 0 0 16px rgba(255, 89, 134, 0.13);
+}
+
+.button-primary:hover:not(:disabled) {
+  color: #fff;
+  background: linear-gradient(135deg, #a21a3a, #cf2b52);
+  box-shadow: 0 9px 24px rgba(163, 5, 5, 0.36), 0 0 22px rgba(255, 89, 134, 0.22);
+}
+
+.button-soft {
+  border-color: rgba(255, 116, 151, 0.42);
+  color: #f2c7d3;
+  background: #100a12;
+}
+
+.button-soft:hover:not(:disabled) {
+  border-color: #ff7597;
+  color: #fff0f4;
+  background: #32101c;
+}
+
+.accept-button {
+  box-shadow: 0 7px 20px rgba(163, 5, 5, 0.28), 0 0 0 calc((var(--accept-scale, 1) - 1) * 18px) rgba(255, 116, 151, 0.13);
+}
+
+.accept-button:hover:not(:disabled) {
+  box-shadow: 0 9px 24px rgba(163, 5, 5, 0.38), 0 0 0 calc((var(--accept-scale, 1) - 1) * 18px) rgba(255, 116, 151, 0.18);
 }
 
 @media (max-width: 540px) {
