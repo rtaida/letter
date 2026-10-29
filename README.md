@@ -1,6 +1,6 @@
 # A Little Apology
 
-A small, responsive React apology page for Jared and Baby Jelay. The recipient can accept or ask for more time. If she accepts, she may choose to open the camera, review a Polaroid-style selfie, and press **Done** to explicitly send it to Jared. After finishing, seven shared photos appear together in a centered gallery. The gallery preloads the photos and skips any that fail to load. Camera access and email sending require separate user actions.
+A small, responsive React apology page for Jared and Baby Jelay. The recipient can accept or ask for more time. If she accepts, she may choose to open the camera, review a Polaroid-style selfie, and press **Done** to explicitly send it to Jared. After finishing, seven shared photos rotate through a centered, animated Polaroid carousel with previous/next controls. The gallery preloads the photos and skips any that fail to load. Camera access and email sending require separate user actions.
 
 ## Run locally
 
@@ -25,7 +25,7 @@ Vercel hosts both the React site and the `api/send-selfie.js` serverless functio
 2. In the Vercel project settings, add these environment variables:
    - `RESEND_API_KEY`: the Resend API key (keep this server-side; never add it to GitHub Pages variables or source code).
    - `EMAIL_FROM`: the verified sender address.
-   - `RECIPIENT_EMAIL`: Jared’s email address.
+   - `RECIPIENT_EMAIL`: the inbox that should receive the selfie (enter this value privately in Vercel; do not commit it).
    - `ALLOWED_ORIGIN`: the exact Vercel site origin, without a trailing slash or path, for example `https://letter-your-account.vercel.app`.
 3. Redeploy the Vercel project after setting the variables.
 

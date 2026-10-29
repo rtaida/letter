@@ -16,6 +16,7 @@ const memoryPhotos = [
 function App() {
   const [page, setPage] = useState("welcome");
   const [acceptClicks, setAcceptClicks] = useState(0);
+  const [memoryIndex, setMemoryIndex] = useState(0);
   const [loadedMemoryPhotos, setLoadedMemoryPhotos] = useState([]);
   const [memoryLoadFailed, setMemoryLoadFailed] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -71,6 +72,22 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (
+      page !== "thank-you"
+      || loadedMemoryPhotos.length < 2
+      || window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return undefined;
+    }
+
+    const timer = window.setInterval(() => {
+      setMemoryIndex((index) => (index + 1) % loadedMemoryPhotos.length);
+    }, 2400);
+
+    return () => window.clearInterval(timer);
+  }, [page, loadedMemoryPhotos.length]);
+
   async function startCamera() {
     setCameraError("");
 
@@ -115,7 +132,14 @@ function App() {
   function removeMemoryPhoto(src) {
     const remaining = loadedMemoryPhotos.filter((photo) => photo.src !== src);
     setLoadedMemoryPhotos(remaining);
+    setMemoryIndex((index) => (remaining.length ? index % remaining.length : 0));
     setMemoryLoadFailed(true);
+  }
+
+  function moveMemory(offset) {
+    setMemoryIndex((index) => (
+      (index + offset + loadedMemoryPhotos.length) % loadedMemoryPhotos.length
+    ));
   }
 
   function continueToKeepsake(wasSent, notice = "") {
@@ -459,24 +483,49 @@ function App() {
             )}
             {loadedMemoryPhotos.length > 0 ? (
               <>
-                <p className="memory-caption">A few of my favorite moments</p>
-                <div className="memory-gallery" aria-label="All seven favorite memories together">
-                  {loadedMemoryPhotos.map((memory, index) => (
-                    <figure
-                      className="memory-gallery-card"
-                      key={memory.src}
-                      style={{ "--memory-delay": `${index * 70}ms` }}
-                    >
-                      <img
-                        src={memory.src}
-                        alt={memory.caption}
-                        loading="eager"
-                        decoding="async"
-                        onError={() => removeMemoryPhoto(memory.src)}
-                      />
-                      <figcaption>{memory.caption}</figcaption>
-                    </figure>
-                  ))}
+                <p className="memory-caption" aria-live="polite">
+                  A few of my favorite moments · {memoryIndex + 1} / {loadedMemoryPhotos.length}
+                </p>
+                <div className="memory-stage" aria-label="Favorite memories together">
+                  {[-1, 1, 0].map((offset) => {
+                    const index = (
+                      memoryIndex + offset + loadedMemoryPhotos.length
+                    ) % loadedMemoryPhotos.length;
+                    const memory = loadedMemoryPhotos[index];
+                    const position = offset === 0 ? "active" : offset < 0 ? "previous" : "next";
+                    return (
+                      <figure
+                        className={`memory-card memory-card-${position}`}
+                        key={`${position}-${memory.src}`}
+                        aria-hidden={position !== "active"}
+                      >
+                        <img
+                          src={memory.src}
+                          alt={position === "active" ? memory.caption : ""}
+                          loading="eager"
+                          decoding="async"
+                          onError={() => removeMemoryPhoto(memory.src)}
+                        />
+                        <figcaption>{memory.caption}</figcaption>
+                      </figure>
+                    );
+                  })}
+                </div>
+                <div className="memory-controls" aria-label="Photo carousel controls">
+                  <button
+                    className="memory-control"
+                    onClick={() => moveMemory(-1)}
+                    aria-label="Previous memory"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    className="memory-control"
+                    onClick={() => moveMemory(1)}
+                    aria-label="Next memory"
+                  >
+                    Next
+                  </button>
                 </div>
               </>
             ) : (

@@ -54,10 +54,6 @@
   justify-self: center;
 }
 
-.memory-gallery {
-  justify-self: center;
-}
-
 .memory-load-message {
   max-width: 260px;
   margin: 20px auto;
@@ -67,88 +63,145 @@
   text-align: center;
 }
 
-.memory-gallery {
-  display: grid;
-  width: min(100%, 360px);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin: 14px auto 8px;
+.memory-stage {
+  position: relative;
+  width: min(100%, 280px);
+  height: clamp(220px, 30vh, 270px);
+  margin: 10px auto 4px;
+  perspective: 900px;
 }
 
-.memory-gallery-card {
+.memory-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   display: flex;
-  min-width: 0;
+  width: min(60%, 168px);
+  height: 100%;
   flex-direction: column;
   margin: 0;
-  padding: 8px 8px 0;
+  padding: 10px 10px 0;
   border-radius: 3px;
   background: #fffaf5;
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.38);
-  animation: memory-arrive 420ms ease-out both;
-  animation-delay: var(--memory-delay, 0ms);
+  transition: transform 650ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 500ms ease;
 }
 
-.memory-gallery-card:last-child:nth-child(odd) {
-  grid-column: 1 / -1;
-  width: calc(50% - 6px);
-  justify-self: center;
-}
-
-.memory-gallery-card img {
+.memory-card img {
   display: block;
   width: 100%;
-  aspect-ratio: 0.9;
   min-height: 0;
+  flex: 1;
   object-fit: cover;
   background: #eadde1;
 }
 
-.memory-gallery-card figcaption {
+.memory-card figcaption {
   display: grid;
-  min-height: 38px;
+  min-height: 48px;
   place-items: center;
-  padding: 5px 2px;
+  padding: 5px 3px;
   color: #633b4c;
   font-family: "Playfair Display", Georgia, serif;
-  font-size: 10px;
+  font-size: 11px;
   font-style: italic;
   text-align: center;
+}
+
+.memory-card-previous {
+  z-index: 1;
+  opacity: 0.66;
+  transform: translate(-87%, -48%) rotate(-12deg) scale(0.86);
+}
+
+.memory-card-next {
+  z-index: 1;
+  opacity: 0.66;
+  transform: translate(-13%, -52%) rotate(11deg) scale(0.86);
+}
+
+.memory-card-active {
+  z-index: 2;
+  opacity: 1;
+  animation: memory-flicker 650ms ease-out both;
+  transform: translate(-50%, -50%) rotate(-1deg);
+}
+
+.memory-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 2px auto 8px;
+}
+
+.memory-control {
+  min-width: 76px;
+  padding: 7px 12px;
+  border: 1px solid rgba(255, 143, 183, 0.35);
+  border-radius: 999px;
+  background: #211822;
+  color: #ffc2d7;
+  cursor: pointer;
+  font-size: 11px;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.memory-control:hover {
+  background: #382432;
+  transform: translateY(-1px);
+}
+
+.memory-control:focus-visible {
+  outline: 2px solid #ff9ac0;
+  outline-offset: 3px;
 }
 
 .closing-signature {
   margin-top: 5px;
 }
 
-@keyframes memory-arrive {
+@keyframes memory-flicker {
   0% {
-    opacity: 0;
-    transform: translateY(10px) rotate(-2deg);
+    filter: brightness(1.7);
+    opacity: 0.35;
+    transform: translate(-50%, -50%) rotate(2deg) scale(0.94);
+  }
+  32% {
+    filter: brightness(0.82);
+    opacity: 0.85;
+  }
+  58% {
+    filter: brightness(1.18);
   }
   100% {
+    filter: brightness(1);
     opacity: 1;
-    transform: translateY(0) rotate(0);
+    transform: translate(-50%, -50%) rotate(-1deg) scale(1);
   }
 }
 
 @media (max-width: 540px) {
-  .memory-gallery {
-    width: min(100%, 320px);
-    gap: clamp(7px, 2.5vw, 10px);
+  .memory-stage {
+    width: min(100%, 250px);
+    height: clamp(195px, 27vh, 230px);
   }
 
-  .memory-gallery-card {
-    padding: clamp(5px, 1.8vw, 7px) clamp(5px, 1.8vw, 7px) 0;
+  .memory-card {
+    width: min(62%, 155px);
+    padding: 7px 7px 0;
   }
 
-  .memory-gallery-card figcaption {
-    min-height: clamp(32px, 9vw, 38px);
-    font-size: clamp(8px, 2.5vw, 10px);
+  .memory-card figcaption {
+    min-height: 38px;
+    font-size: 9px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .memory-gallery-card {
+  .memory-card,
+  .memory-card-active {
     animation: none;
+    transition: none;
   }
 }
 
