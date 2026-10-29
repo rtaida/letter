@@ -17,6 +17,8 @@ function App() {
   const [page, setPage] = useState("welcome");
   const [acceptClicks, setAcceptClicks] = useState(0);
   const [memoryIndex, setMemoryIndex] = useState(0);
+  const [loadedMemoryPhotos, setLoadedMemoryPhotos] = useState([]);
+  const [memoryLoadFailed, setMemoryLoadFailed] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [photo, setPhoto] = useState("");
   const [cameraError, setCameraError] = useState("");
@@ -44,16 +46,41 @@ function App() {
   );
 
   useEffect(() => {
-    if (page !== "thank-you" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    let active = true;
+    const photoLoads = memoryPhotos.map((photo) => new Promise((resolve) => {
+      const image = new Image();
+      image.onload = () => resolve({ photo, loaded: image.naturalWidth > 0 });
+      image.onerror = () => resolve({ photo, loaded: false });
+      image.src = photo.src;
+    }));
+
+    Promise.all(photoLoads).then((results) => {
+      if (!active) return;
+      const loaded = results.filter((result) => result.loaded).map((result) => result.photo);
+      setLoadedMemoryPhotos(loaded);
+      setMemoryLoadFailed(loaded.length !== memoryPhotos.length);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (
+      page !== "thank-you"
+      || loadedMemoryPhotos.length < 2
+      || window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
       return undefined;
     }
 
     const timer = window.setInterval(() => {
-      setMemoryIndex((index) => (index + 1) % memoryPhotos.length);
+      setMemoryIndex((index) => (index + 1) % loadedMemoryPhotos.length);
     }, 2400);
 
     return () => window.clearInterval(timer);
-  }, [page]);
+  }, [page, loadedMemoryPhotos.length]);
 
   async function startCamera() {
     setCameraError("");
@@ -359,25 +386,44 @@ function App() {
               moment a chance.
             </p>
             <p className="memory-caption" aria-live="polite">
-              A few of my favorite moments · {memoryIndex + 1} / {memoryPhotos.length}
+              {loadedMemoryPhotos.length > 0
+                ? `A few of my favorite moments · ${memoryIndex + 1} / ${loadedMemoryPhotos.length}`
+                : "Loading a few favorite moments…"}
             </p>
-            <div className="memory-stage" aria-label="Favorite memories together">
-              {[-1, 1, 0].map((offset) => {
-                const index = (memoryIndex + offset + memoryPhotos.length) % memoryPhotos.length;
-                const memory = memoryPhotos[index];
-                const position = offset === 0 ? "active" : offset < 0 ? "previous" : "next";
-                return (
-                  <figure
-                    className={`memory-card memory-card-${position}`}
-                    key={`${position}-${index}`}
-                    aria-hidden={position !== "active"}
-                  >
-                    <img src={memory.src} alt={position === "active" ? memory.caption : ""} />
-                    <figcaption>{memory.caption}</figcaption>
-                  </figure>
-                );
-              })}
-            </div>
+            {loadedMemoryPhotos.length > 0 ? (
+              <div className="memory-stage" aria-label="Favorite memories together">
+                {(loadedMemoryPhotos.length > 1 ? [-1, 1, 0] : [0]).map((offset) => {
+                  const index = (
+                    memoryIndex + offset + loadedMemoryPhotos.length
+                  ) % loadedMemoryPhotos.length;
+                  const memory = loadedMemoryPhotos[index];
+                  const position = offset === 0 ? "active" : offset < 0 ? "previous" : "next";
+                  return (
+                    <figure
+                      className={`memory-card memory-card-${position}`}
+                      key={`${position}-${memory.src}`}
+                      aria-hidden={position !== "active"}
+                    >
+                      <img
+                        src={memory.src}
+                        alt={position === "active" ? memory.caption : ""}
+                        decoding="async"
+                      />
+                      <figcaption>{memory.caption}</figcaption>
+                    </figure>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="memory-load-message" role="status">
+                Your keepsake photos are taking a little longer to load.
+              </p>
+            )}
+            {memoryLoadFailed && loadedMemoryPhotos.length > 0 && (
+              <p className="memory-load-message" role="status">
+                A few photos couldn’t load, so the memories that did are shown.
+              </p>
+            )}
             <p className="signature closing-signature">Always yours, Jared <span aria-hidden="true">♡</span></p>
           </section>
         )}

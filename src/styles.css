@@ -48,6 +48,15 @@
   text-align: center;
 }
 
+.memory-load-message {
+  max-width: 260px;
+  margin: 20px auto;
+  color: #d0bec8;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+}
+
 .memory-stage {
   position: relative;
   width: min(100%, 280px);
