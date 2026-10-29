@@ -9,7 +9,7 @@ npm ci
 npm run dev
 ```
 
-Camera access requires HTTPS or `localhost`. The email button is intentionally unavailable until `VITE_API_URL` is configured.
+Camera access requires HTTPS or `localhost`. In production, the **Done** button sends the reviewed Polaroid to the same-origin Vercel API after its email environment variables are configured. Local development leaves email sending unavailable by default.
 
 ## Deploy the site and API to Vercel
 
