@@ -116,7 +116,9 @@
 .memory-card-active {
   z-index: 2;
   opacity: 1;
-  animation: memory-flicker 650ms ease-out both;
+  animation:
+    memory-flicker 650ms ease-out both,
+    memory-heartbeat 1.8s 650ms ease-in-out infinite;
   transform: translate(-50%, -50%) rotate(-1deg);
 }
 
@@ -140,6 +142,25 @@
   100% {
     filter: brightness(1);
     opacity: 1;
+    transform: translate(-50%, -50%) rotate(-1deg) scale(1);
+  }
+}
+
+@keyframes memory-heartbeat {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) rotate(-1deg) scale(1);
+  }
+  14% {
+    transform: translate(-50%, -50%) rotate(-1deg) scale(1.025);
+  }
+  27% {
+    transform: translate(-50%, -50%) rotate(-1deg) scale(1);
+  }
+  40% {
+    transform: translate(-50%, -50%) rotate(-1deg) scale(1.018);
+  }
+  54% {
     transform: translate(-50%, -50%) rotate(-1deg) scale(1);
   }
 }

@@ -8,6 +8,8 @@ const memoryPhotos = [
   { src: "/images/memory-05.png", caption: "Silly little memories" },
   { src: "/images/memory-06.png", caption: "Just us being us" },
   { src: "/images/memory-07.png", caption: "A memory I’ll keep close" },
+  { src: "/images/memory-08.png", caption: "A sweet moment together" },
+  { src: "/images/memory-09.png", caption: "One more favorite memory" },
 ];
 
 function App() {

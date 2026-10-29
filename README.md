@@ -1,6 +1,6 @@
 # A Little Apology
 
-A small, responsive React apology page for Jared and Baby Jelay. Open the letter and choose **I accept** to see a thank-you page with a continuously rotating, animated Polaroid carousel of seven shared photos. The carousel starts automatically and has no manual navigation buttons. This version does not request camera access or capture/send selfies.
+A small, responsive React apology page for Jared and Baby Jelay. Open the letter and choose **I accept** to see a thank-you page with a continuously rotating, animated Polaroid carousel of nine shared photos. The active photo has a gentle heartbeat effect. The carousel starts automatically and has no manual navigation buttons. This version does not request camera access or capture/send selfies.
 
 ## Run locally
 
