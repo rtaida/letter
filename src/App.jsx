@@ -263,8 +263,7 @@ function App() {
             <p className="eyebrow">ONE LITTLE KEEPSAKE</p>
             <h1 id="camera-title">A selfie, only if you’d like.</h1>
             <p className="camera-copy">
-              If you want, take a selfie to mark this moment. You’ll see it
-              first, and it won’t be emailed unless you choose “Done.”
+              Take a little selfie to remember this moment. You’ll get to see it first.
             </p>
 
             <div className={`camera-frame${photo ? " has-photo" : ""}`}>
@@ -317,11 +316,11 @@ function App() {
 
             {!API_URL && (
               <p className="setup-note">
-                Email delivery will be available once Jared connects the email service.
+                This keepsake is still being set up.
               </p>
             )}
             <p className="privacy-note">
-              The selfie is sent to Jared’s email only after you press “Done.”
+              Tap “Done” to email this Polaroid to Jared.
             </p>
             <button className="text-button" onClick={goBackToLetter} disabled={sending}>
               ← Back to the letter
