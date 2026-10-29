@@ -1,6 +1,6 @@
 # A Little Apology
 
-A small, responsive React apology page for Jared and Baby Jelay. The recipient can accept or ask for more time. If she accepts, she may choose to open the camera, review a Polaroid-style selfie, and press **Done** to explicitly send it to Jared. Camera access and email sending require separate user actions.
+A small, responsive React apology page for Jared and Baby Jelay. The recipient can accept or ask for more time. If she accepts, she may choose to open the camera, review a Polaroid-style selfie, and press **Done** to explicitly send it to Jared. After a successful send, seven shared photos appear in an animated Polaroid stack. Camera access and email sending require separate user actions.
 
 ## Run locally
 

@@ -3,9 +3,20 @@ import { useEffect, useRef, useState } from "react";
 const API_URL = import.meta.env.VITE_API_URL?.trim()
   || (import.meta.env.PROD ? "/api/send-selfie" : "");
 
+const memoryPhotos = [
+  { src: "/images/memory-01.png", caption: "A little moment together" },
+  { src: "/images/memory-02.png", caption: "My favorite place is with you" },
+  { src: "/images/memory-03.png", caption: "One of my favorite days" },
+  { src: "/images/memory-04.png", caption: "Always making me smile" },
+  { src: "/images/memory-05.png", caption: "Silly little memories" },
+  { src: "/images/memory-06.png", caption: "Just us being us" },
+  { src: "/images/memory-07.png", caption: "A memory I’ll keep close" },
+];
+
 function App() {
   const [page, setPage] = useState("welcome");
   const [acceptClicks, setAcceptClicks] = useState(0);
+  const [memoryIndex, setMemoryIndex] = useState(0);
   const [cameraReady, setCameraReady] = useState(false);
   const [photo, setPhoto] = useState("");
   const [cameraError, setCameraError] = useState("");
@@ -31,6 +42,18 @@ function App() {
     },
     [],
   );
+
+  useEffect(() => {
+    if (page !== "thank-you" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return undefined;
+    }
+
+    const timer = window.setInterval(() => {
+      setMemoryIndex((index) => (index + 1) % memoryPhotos.length);
+    }, 2400);
+
+    return () => window.clearInterval(timer);
+  }, [page]);
 
   async function startCamera() {
     setCameraError("");
@@ -153,6 +176,7 @@ function App() {
       }
 
       stopCamera();
+      setMemoryIndex(0);
       setPage("thank-you");
     } catch (error) {
       setSendError(error.message || "The photo couldn’t be sent. Please check your connection and try again.");
@@ -319,9 +343,6 @@ function App() {
                 This keepsake is still being set up.
               </p>
             )}
-            <p className="privacy-note">
-              Tap “Done” to email this Polaroid to Jared.
-            </p>
             <button className="text-button" onClick={goBackToLetter} disabled={sending}>
               ← Back to the letter
             </button>
@@ -337,6 +358,26 @@ function App() {
               Your selfie has been sent to Jared. Thank you for giving this
               moment a chance.
             </p>
+            <p className="memory-caption" aria-live="polite">
+              A few of my favorite moments · {memoryIndex + 1} / {memoryPhotos.length}
+            </p>
+            <div className="memory-stage" aria-label="Favorite memories together">
+              {[-1, 1, 0].map((offset) => {
+                const index = (memoryIndex + offset + memoryPhotos.length) % memoryPhotos.length;
+                const memory = memoryPhotos[index];
+                const position = offset === 0 ? "active" : offset < 0 ? "previous" : "next";
+                return (
+                  <figure
+                    className={`memory-card memory-card-${position}`}
+                    key={`${position}-${index}`}
+                    aria-hidden={position !== "active"}
+                  >
+                    <img src={memory.src} alt={position === "active" ? memory.caption : ""} />
+                    <figcaption>{memory.caption}</figcaption>
+                  </figure>
+                );
+              })}
+            </div>
             <p className="signature closing-signature">Always yours, Jared <span aria-hidden="true">♡</span></p>
           </section>
         )}
