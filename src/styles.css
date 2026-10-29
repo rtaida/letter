@@ -760,6 +760,12 @@ h1 {
   background: #2b2029;
 }
 
+.camera-frame.has-photo .photo-preview {
+  display: block;
+  min-width: 0;
+  border-radius: 2px;
+}
+
 .camera-placeholder {
   color: #c1a8b4;
 }

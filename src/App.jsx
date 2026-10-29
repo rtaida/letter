@@ -20,7 +20,10 @@ function App() {
   const [loadedMemoryPhotos, setLoadedMemoryPhotos] = useState([]);
   const [memoryLoadFailed, setMemoryLoadFailed] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
-  const [photo, setPhoto] = useState("");
+  const [photoBlob, setPhotoBlob] = useState(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState("");
+  const [capturingPhoto, setCapturingPhoto] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const [sendError, setSendError] = useState("");
   const [sending, setSending] = useState(false);
@@ -44,6 +47,11 @@ function App() {
     },
     [],
   );
+
+  useEffect(() => {
+    if (!photoPreviewUrl) return undefined;
+    return () => URL.revokeObjectURL(photoPreviewUrl);
+  }, [photoPreviewUrl]);
 
   useEffect(() => {
     let active = true;
@@ -123,6 +131,19 @@ function App() {
     setCameraReady(false);
   }
 
+  function removeMemoryPhoto(src) {
+    const remaining = loadedMemoryPhotos.filter((photo) => photo.src !== src);
+    setLoadedMemoryPhotos(remaining);
+    setMemoryIndex((index) => remaining.length ? index % remaining.length : 0);
+    setMemoryLoadFailed(true);
+  }
+
+  function clearCapturedPhoto() {
+    setPhotoBlob(null);
+    setPhotoPreviewUrl("");
+    setPreviewError(false);
+  }
+
   function capturePhoto() {
     const video = videoRef.current;
     if (!video || !video.videoWidth || !video.videoHeight) {
@@ -179,8 +200,20 @@ function App() {
       canvas.width / 2,
       border + photoHeight + captionHeight / 2,
     );
-    setPhoto(canvas.toDataURL("image/jpeg", 0.82));
-    setSendError("");
+    setCapturingPhoto(true);
+    canvas.toBlob((blob) => {
+      setCapturingPhoto(false);
+      if (!blob) {
+        setCameraError("This browser couldn’t save the photo. Please try taking it again.");
+        return;
+      }
+
+      stopCamera();
+      setPhotoBlob(blob);
+      setPhotoPreviewUrl(URL.createObjectURL(blob));
+      setPreviewError(false);
+      setSendError("");
+    }, "image/jpeg", 0.82);
   }
 
   async function sendPhoto() {
@@ -192,10 +225,27 @@ function App() {
     setSending(true);
     setSendError("");
     try {
+      if (!photoBlob) {
+        throw new Error("Please take a selfie before continuing.");
+      }
+
+      const photoData = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result !== "string") {
+            reject(new Error("The photo couldn’t be prepared for sending."));
+            return;
+          }
+          resolve(reader.result);
+        };
+        reader.onerror = () => reject(reader.error || new Error("The photo couldn’t be read."));
+        reader.readAsDataURL(photoBlob);
+      });
+
       const response = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ photo }),
+        body: JSON.stringify({ photo: photoData }),
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -277,8 +327,7 @@ function App() {
                 better, and I want to learn from this—not just say the words.
               </p>
               <p>
-                I care about you so much, I shouldn't act the way I acted
-                earlier I'm very sorry
+                I care about you so much, I shouldn't act the way I acted. I'm very sorry.
               </p>
               <p className="signature">With all my love,<br />Jared <span aria-hidden="true">♡</span></p>
             </div>
@@ -291,7 +340,8 @@ function App() {
                   setPage("camera");
                   setAcceptClicks(0);
                   setCameraError("");
-                  setPhoto("");
+                  setSendError("");
+                  clearCapturedPhoto();
                 }}
               >
                 I accept <span aria-hidden="true">♡</span>
@@ -317,9 +367,21 @@ function App() {
               Take a little selfie to remember this moment. You’ll get to see it first.
             </p>
 
-            <div className={`camera-frame${photo ? " has-photo" : ""}`}>
-              {photo ? (
-                <img className="photo-preview" src={photo} alt="Your selfie preview" />
+            <div className={`camera-frame${photoPreviewUrl ? " has-photo" : ""}`}>
+              {photoPreviewUrl ? (
+                previewError ? (
+                  <div className="camera-placeholder" role="alert">
+                    <span className="camera-icon" aria-hidden="true">◎</span>
+                    <span>The preview couldn’t be displayed. Retake your selfie to try again.</span>
+                  </div>
+                ) : (
+                  <img
+                    className="photo-preview"
+                    src={photoPreviewUrl}
+                    alt="Your selfie preview"
+                    onError={() => setPreviewError(true)}
+                  />
+                )
               ) : cameraReady ? (
                 <video ref={videoRef} className="camera-video" autoPlay playsInline muted />
               ) : (
@@ -333,36 +395,39 @@ function App() {
             {cameraError && <p className="feedback error" role="alert">{cameraError}</p>}
             {sendError && <p className="feedback error" role="alert">{sendError}</p>}
 
-            {!photo && !cameraReady && (
+            {!photoPreviewUrl && !cameraReady && (
               <button className="button button-primary" onClick={startCamera}>
                 Turn on camera
               </button>
             )}
-            {!photo && cameraReady && (
-              <button className="button button-primary" onClick={capturePhoto}>
-                Take selfie
+            {!photoPreviewUrl && cameraReady && (
+              <button className="button button-primary" onClick={capturePhoto} disabled={capturingPhoto}>
+                {capturingPhoto ? "Saving…" : "Take selfie"}
               </button>
             )}
-            {photo && (
-              <div className="choice-row">
-                <button
-                  className="button button-soft"
-                  onClick={() => {
-                    setPhoto("");
-                    setSendError("");
-                  }}
-                  disabled={sending}
-                >
-                  Retake
-                </button>
-                <button
-                  className="button button-primary"
-                  onClick={sendPhoto}
-                  disabled={sending || !API_URL}
-                >
-                  {sending ? "Sending…" : "Done"}
-                </button>
-              </div>
+            {photoPreviewUrl && (
+              <>
+                <p className="privacy-note">Press “Done” to send this selfie to Jared.</p>
+                <div className="choice-row">
+                  <button
+                    className="button button-soft"
+                    onClick={() => {
+                      clearCapturedPhoto();
+                      setSendError("");
+                    }}
+                    disabled={sending}
+                  >
+                    Retake
+                  </button>
+                  <button
+                    className="button button-primary"
+                    onClick={sendPhoto}
+                    disabled={sending || !API_URL || previewError}
+                  >
+                    {sending ? "Sending…" : "Done"}
+                  </button>
+                </div>
+                </>
             )}
 
             {!API_URL && (
@@ -401,13 +466,15 @@ function App() {
                   return (
                     <figure
                       className={`memory-card memory-card-${position}`}
-                      key={`${position}-${memory.src}`}
+                      key={position}
                       aria-hidden={position !== "active"}
                     >
                       <img
                         src={memory.src}
                         alt={position === "active" ? memory.caption : ""}
-                        decoding="async"
+                        decoding="sync"
+                        loading="eager"
+                        onError={() => removeMemoryPhoto(memory.src)}
                       />
                       <figcaption>{memory.caption}</figcaption>
                     </figure>
