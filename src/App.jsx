@@ -13,9 +13,28 @@ const memoryPhotos = [
 function App() {
   const [page, setPage] = useState("welcome");
   const [acceptClicks, setAcceptClicks] = useState(0);
+  const [letterParagraphCount, setLetterParagraphCount] = useState(0);
+  const [showPartyPopup, setShowPartyPopup] = useState(false);
   const [memoryIndex, setMemoryIndex] = useState(0);
   const [loadedMemoryPhotos, setLoadedMemoryPhotos] = useState([]);
   const [memoryLoadFailed, setMemoryLoadFailed] = useState(false);
+
+  useEffect(() => {
+    if (page !== "letter" || letterParagraphCount >= 4) return undefined;
+
+    const timer = window.setTimeout(() => {
+      setLetterParagraphCount((count) => Math.min(count + 1, 4));
+    }, 1500);
+
+    return () => window.clearTimeout(timer);
+  }, [page, letterParagraphCount]);
+
+  useEffect(() => {
+    if (!showPartyPopup) return undefined;
+
+    const timer = window.setTimeout(() => setShowPartyPopup(false), 2600);
+    return () => window.clearTimeout(timer);
+  }, [showPartyPopup]);
 
   useEffect(() => {
     let active = true;
@@ -61,6 +80,11 @@ function App() {
     setMemoryLoadFailed(true);
   }
 
+  function openLetter() {
+    setLetterParagraphCount(1);
+    setPage("letter");
+  }
+
   return (
     <main className="page-shell">
       <div className="floating-hearts" aria-hidden="true">
@@ -98,7 +122,7 @@ function App() {
             <p className="eyebrow">A LITTLE SOMETHING FOR YOU</p>
             <button
               className="envelope-trigger"
-              onClick={() => setPage("letter")}
+              onClick={openLetter}
               aria-label="Click the letter to open it"
             >
               <span className="envelope" aria-hidden="true">
@@ -108,7 +132,7 @@ function App() {
             <button
               id="welcome-title"
               className="click-letter-title"
-              onClick={() => setPage("letter")}
+              onClick={openLetter}
             >
               CLICK THE LETTER
             </button>
@@ -121,16 +145,32 @@ function App() {
             <p className="eyebrow">A NOTE FROM MY HEART</p>
             <h1 id="letter-title">I’m truly sorry.</h1>
             <div className="letter-copy">
-              <p>Dear Baby Jelay,</p>
-              <p>
+              <p
+                className={letterParagraphCount > 0 ? "letter-paragraph is-visible" : "letter-paragraph"}
+                aria-hidden={letterParagraphCount <= 0}
+              >
+                Dear Baby Jelay,
+              </p>
+              <p
+                className={letterParagraphCount > 1 ? "letter-paragraph is-visible" : "letter-paragraph"}
+                aria-hidden={letterParagraphCount <= 1}
+              >
                 I’m sorry for hurting you. You deserve patience, kindness, and
                 the effort to understand how you feel. I should have done
                 better, and I want to learn from this—not just say the words.
               </p>
-              <p>
-                I care about you so much, I shouldn't act the way I acted. I'm very sorry.
+              <p
+                className={letterParagraphCount > 2 ? "letter-paragraph is-visible" : "letter-paragraph"}
+                aria-hidden={letterParagraphCount <= 2}
+              >
+                I care about you so much, I shouldn't act the way I acted earlier I'm very sorry
               </p>
-              <p className="signature">With all my love,<br />Jared <span aria-hidden="true">♡</span></p>
+              <p
+                className={`signature letter-paragraph${letterParagraphCount > 3 ? " is-visible" : ""}`}
+                aria-hidden={letterParagraphCount <= 3}
+              >
+                With all my love,<br />Jared <span aria-hidden="true">♡</span>
+              </p>
             </div>
             <p className="question">Can you forgive me?</p>
             <div className="choice-row">
@@ -140,6 +180,7 @@ function App() {
                 onClick={() => {
                   setPage("thank-you");
                   setAcceptClicks(0);
+                  setShowPartyPopup(true);
                 }}
               >
                 I accept <span aria-hidden="true">♡</span>
@@ -216,7 +257,19 @@ function App() {
           <span>JUST FOR YOU</span>
         </div>
       </div>
-      <p className="page-caption">A little note, from Jared to Baby Jelay</p>
+      {showPartyPopup && (
+        <div className="celebration-overlay" role="status" aria-live="polite">
+          <div className="party-popup">
+            <span className="party-spark party-spark-one" aria-hidden="true">✦</span>
+            <span className="party-spark party-spark-two" aria-hidden="true">♥</span>
+            <span className="party-spark party-spark-three" aria-hidden="true">♡</span>
+            <span className="party-heart" aria-hidden="true">♥</span>
+            <p className="party-eyebrow">A LITTLE CELEBRATION</p>
+            <h2>Yay, Baby Jelay!</h2>
+            <p>Thank you for accepting my apology <span aria-hidden="true">♡</span></p>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
