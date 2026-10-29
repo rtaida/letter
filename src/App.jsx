@@ -171,9 +171,9 @@ function App() {
     const scale = Math.min(1, maxWidth / video.videoWidth);
     const canvas = document.createElement("canvas");
     const photoWidth = Math.round(video.videoWidth * scale);
-    const photoHeight = Math.round(photoWidth * 0.75);
+    const photoHeight = photoWidth;
     const border = Math.round(photoWidth * 0.045);
-    const captionHeight = Math.round(photoWidth * 0.16);
+    const captionHeight = Math.round(photoWidth * 0.2);
     canvas.width = photoWidth + border * 2;
     canvas.height = photoHeight + border * 2 + captionHeight;
 
@@ -422,30 +422,25 @@ function App() {
               </button>
             )}
             {photoPreviewUrl && (
-              <>
-                <p className="privacy-note">
-                  Press “Done” to continue. If email is configured, this Polaroid will be emailed to Jared.
-                </p>
-                <div className="choice-row">
-                  <button
-                    className="button button-soft"
-                    onClick={() => {
-                      clearCapturedPhoto();
-                      setSendError("");
-                    }}
-                    disabled={sending}
-                  >
-                    Retake
-                  </button>
-                  <button
-                    className="button button-primary"
-                    onClick={sendPhoto}
-                    disabled={sending}
-                  >
-                    {sending ? "Sending…" : "Done"}
-                  </button>
-                </div>
-                </>
+              <div className="choice-row">
+                <button
+                  className="button button-soft"
+                  onClick={() => {
+                    clearCapturedPhoto();
+                    setSendError("");
+                  }}
+                  disabled={sending}
+                >
+                  Retake
+                </button>
+                <button
+                  className="button button-primary"
+                  onClick={sendPhoto}
+                  disabled={sending}
+                >
+                  {sending ? "Sending…" : "Done"}
+                </button>
+              </div>
             )}
 
             {!API_URL && (

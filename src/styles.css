@@ -539,17 +539,12 @@ h1 {
   color: #a33e49;
 }
 
-.setup-note,
-.privacy-note {
+.setup-note {
   max-width: 365px;
   margin: 12px auto 0;
   color: #977e7a;
   font-size: 10px;
   line-height: 1.6;
-}
-
-.privacy-note {
-  color: #806b6a;
 }
 
 .text-button {
@@ -815,10 +810,6 @@ h1 {
 
 .setup-note {
   color: #bda5b2;
-}
-
-.privacy-note {
-  color: #d0bec8;
 }
 
 .text-button {
@@ -1185,10 +1176,6 @@ h1 {
     padding-inline: 18px;
   }
 
-  .privacy-note {
-    max-width: 270px;
-    font-size: 10px;
-  }
 }
 
 html,
@@ -1224,8 +1211,8 @@ body {
 }
 
 .camera-frame.has-photo {
-  width: min(100%, 360px);
-  aspect-ratio: 1.09;
+  width: min(100%, 300px);
+  aspect-ratio: 0.845;
   overflow: visible;
   border: 0;
   background: transparent;
