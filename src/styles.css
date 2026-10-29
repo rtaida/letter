@@ -847,6 +847,66 @@ h1 {
   }
 }
 
+.letter-panel {
+  position: relative;
+  width: 100%;
+  margin: clamp(18px, 4vw, 30px) auto 24px;
+  padding: clamp(24px, 5vw, 38px) clamp(18px, 5vw, 36px);
+  border: 1px solid #e8cfc0;
+  border-radius: 4px 4px 12px 12px;
+  background:
+    linear-gradient(135deg, #f3e1d5 0 14px, transparent 14px) top left / 28px 28px no-repeat,
+    linear-gradient(225deg, #f3e1d5 0 14px, transparent 14px) top right / 28px 28px no-repeat,
+    linear-gradient(180deg, #fff8f0, #f8eee5);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.25), inset 0 0 0 5px rgba(255, 255, 255, 0.3);
+  text-align: center;
+}
+
+.letter-panel::before {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  width: 42px;
+  height: 2px;
+  border-radius: 2px;
+  background: #e6b4bb;
+  content: "";
+  transform: translateX(-50%);
+}
+
+.letter-panel .eyebrow {
+  color: #a45b72;
+}
+
+.letter-panel h1 {
+  color: #53343c;
+}
+
+.letter-panel .letter-copy {
+  color: #665158;
+}
+
+.letter-panel .letter-copy p:first-child,
+.letter-panel .signature,
+.letter-panel .question {
+  color: #563a42;
+}
+
+.letter-panel .signature span {
+  color: #be647f;
+}
+
+.letter-panel .tiny-note {
+  color: #866c73;
+}
+
+@media (max-width: 540px) {
+  .letter-panel {
+    margin-block: 16px 20px;
+    padding: 28px 17px 24px;
+  }
+}
+
 html,
 body,
 #root {

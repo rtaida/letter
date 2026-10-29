@@ -226,9 +226,8 @@ function App() {
                 better, and I want to learn from this—not just say the words.
               </p>
               <p>
-                I care about you so much. I hope, when you’re ready, you’ll let
-                me try to make things right. There’s no pressure to say yes
-                before you mean it.
+                I care about you so much, I shouldn't act the way I acted
+                earlier I'm very sorry
               </p>
               <p className="signature">With all my love,<br />Jared <span aria-hidden="true">♡</span></p>
             </div>
