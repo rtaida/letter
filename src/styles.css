@@ -45,13 +45,14 @@
   color: #d997b3;
   font-size: 11px;
   letter-spacing: 0.04em;
+  text-align: center;
 }
 
 .memory-stage {
   position: relative;
-  width: min(100%, 340px);
-  height: clamp(245px, 34vh, 330px);
-  margin: 12px auto 4px;
+  width: min(100%, 280px);
+  height: clamp(220px, 30vh, 270px);
+  margin: 10px auto 4px;
   perspective: 900px;
 }
 
@@ -60,7 +61,7 @@
   top: 50%;
   left: 50%;
   display: flex;
-  width: min(64%, 220px);
+  width: min(60%, 168px);
   height: 100%;
   flex-direction: column;
   margin: 0;
@@ -137,18 +138,18 @@
 
 @media (max-width: 540px) {
   .memory-stage {
-    width: min(100%, 300px);
-    height: clamp(220px, 31vh, 285px);
+    width: min(100%, 250px);
+    height: clamp(195px, 27vh, 230px);
   }
 
   .memory-card {
-    width: min(67%, 195px);
-    padding: 8px 8px 0;
+    width: min(62%, 155px);
+    padding: 7px 7px 0;
   }
 
   .memory-card figcaption {
-    min-height: 42px;
-    font-size: 10px;
+    min-height: 38px;
+    font-size: 9px;
   }
 }
 
