@@ -591,6 +591,10 @@ h1 {
   color: #d997b3;
 }
 
+.card-footer {
+  border-top-color: rgba(255, 116, 151, 0.28);
+}
+
 .topline-heart,
 .card-footer span:nth-child(2) {
   color: #ff83b3;

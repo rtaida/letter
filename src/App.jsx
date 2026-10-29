@@ -18,7 +18,6 @@ function App() {
   const [letterParagraphCount, setLetterParagraphCount] = useState(0);
   const [showPartyPopup, setShowPartyPopup] = useState(false);
   const [memoryIndex, setMemoryIndex] = useState(0);
-  const [loadedMemoryPhotos, setLoadedMemoryPhotos] = useState([]);
   const [memoryLoadFailed, setMemoryLoadFailed] = useState(false);
 
   useEffect(() => {
@@ -49,9 +48,7 @@ function App() {
 
     Promise.all(photoLoads).then((results) => {
       if (!active) return;
-      const loaded = results.filter((result) => result.loaded).map((result) => result.photo);
-      setLoadedMemoryPhotos(loaded);
-      setMemoryLoadFailed(loaded.length !== memoryPhotos.length);
+      setMemoryLoadFailed(results.some((result) => !result.loaded));
     });
 
     return () => {
@@ -62,23 +59,20 @@ function App() {
   useEffect(() => {
     if (
       page !== "thank-you"
-      || loadedMemoryPhotos.length < 2
+      || memoryPhotos.length < 2
       || window.matchMedia("(prefers-reduced-motion: reduce)").matches
     ) {
       return undefined;
     }
 
     const timer = window.setInterval(() => {
-      setMemoryIndex((index) => (index + 1) % loadedMemoryPhotos.length);
+      setMemoryIndex((index) => (index + 1) % memoryPhotos.length);
     }, 2400);
 
     return () => window.clearInterval(timer);
-  }, [page, loadedMemoryPhotos.length]);
+  }, [page]);
 
-  function removeMemoryPhoto(src) {
-    const remaining = loadedMemoryPhotos.filter((photo) => photo.src !== src);
-    setLoadedMemoryPhotos(remaining);
-    setMemoryIndex((index) => (remaining.length ? index % remaining.length : 0));
+  function reportMemoryPhotoError() {
     setMemoryLoadFailed(true);
   }
 
@@ -208,17 +202,17 @@ function App() {
             <p className="intro-copy">
               Thank you for sharing this moment. I’ll keep working on my apology.
             </p>
-            {loadedMemoryPhotos.length > 0 ? (
+            {memoryPhotos.length > 0 ? (
               <>
                 <p className="memory-caption" aria-live="polite">
-                  A few of my favorite moments · {memoryIndex + 1} / {loadedMemoryPhotos.length}
+                  A few of my favorite moments · {memoryIndex + 1} / {memoryPhotos.length}
                 </p>
                 <div className="memory-stage" aria-label="Favorite memories together">
                   {[-1, 1, 0].map((offset) => {
                     const index = (
-                      memoryIndex + offset + loadedMemoryPhotos.length
-                    ) % loadedMemoryPhotos.length;
-                    const memory = loadedMemoryPhotos[index];
+                      memoryIndex + offset + memoryPhotos.length
+                    ) % memoryPhotos.length;
+                    const memory = memoryPhotos[index];
                     const position = offset === 0 ? "active" : offset < 0 ? "previous" : "next";
                     return (
                       <figure
@@ -231,7 +225,7 @@ function App() {
                           alt={position === "active" ? memory.caption : ""}
                           loading="eager"
                           decoding="async"
-                          onError={() => removeMemoryPhoto(memory.src)}
+                          onError={reportMemoryPhotoError}
                         />
                         <figcaption>{memory.caption}</figcaption>
                       </figure>
