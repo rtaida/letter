@@ -47,6 +47,19 @@
   justify-self: center;
 }
 
+.message-panel .eyebrow {
+  color: #ff91b4;
+}
+
+.message-panel h1 {
+  color: #fff0f5;
+  text-shadow: 0 0 22px rgba(255, 110, 169, 0.2);
+}
+
+.message-panel .intro-copy {
+  color: #d0bec8;
+}
+
 .memory-load-message {
   max-width: 260px;
   margin: 20px auto;
@@ -678,7 +691,13 @@ h1 {
 }
 
 .memory-card {
+  border: 1px solid rgba(255, 116, 151, 0.3);
+  background: linear-gradient(160deg, #21101b, #110b13);
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.56), 0 0 18px rgba(163, 5, 5, 0.16);
+}
+
+.memory-card figcaption {
+  color: #f3cada;
 }
 
 .floating-hearts {
@@ -1120,14 +1139,6 @@ h1 {
     max-width: 100%;
     padding-inline: clamp(12px, 5vw, 23px);
     font-size: 12px;
-  }
-
-  .letter-panel .accept-button {
-    transform: scale(min(var(--accept-scale, 1), 1.25));
-  }
-
-  .letter-panel .accept-button:hover:not(:disabled) {
-    transform: scale(min(var(--accept-scale, 1), 1.25)) translateY(-2px);
   }
 
 }
