@@ -1,7 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-
-const API_URL = import.meta.env.VITE_API_URL?.trim()
-  || (import.meta.env.PROD ? "/api/send-selfie" : "");
+import { useEffect, useState } from "react";
 
 const memoryPhotos = [
   { src: "/images/memory-01.png", caption: "A little moment together" },
@@ -19,37 +16,6 @@ function App() {
   const [memoryIndex, setMemoryIndex] = useState(0);
   const [loadedMemoryPhotos, setLoadedMemoryPhotos] = useState([]);
   const [memoryLoadFailed, setMemoryLoadFailed] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
-  const [emailNotice, setEmailNotice] = useState("");
-  const [cameraReady, setCameraReady] = useState(false);
-  const [photoBlob, setPhotoBlob] = useState(null);
-  const [photoPreviewUrl, setPhotoPreviewUrl] = useState("");
-  const [capturingPhoto, setCapturingPhoto] = useState(false);
-  const [previewError, setPreviewError] = useState(false);
-  const [cameraError, setCameraError] = useState("");
-  const [sendError, setSendError] = useState("");
-  const [sending, setSending] = useState(false);
-  const videoRef = useRef(null);
-  const streamRef = useRef(null);
-  const photoPreviewUrlRef = useRef("");
-
-  useEffect(() => {
-    const video = videoRef.current;
-    const stream = streamRef.current;
-    if (!video || !stream) return;
-
-    video.srcObject = stream;
-    video.play().catch(() => {
-      setCameraError("The camera preview couldn’t start. Please try turning the camera off and on again.");
-    });
-  }, [cameraReady]);
-
-  useEffect(
-    () => () => {
-      streamRef.current?.getTracks().forEach((track) => track.stop());
-    },
-    [],
-  );
 
   useEffect(() => {
     let active = true;
@@ -88,202 +54,11 @@ function App() {
     return () => window.clearInterval(timer);
   }, [page, loadedMemoryPhotos.length]);
 
-  async function startCamera() {
-    setCameraError("");
-
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setCameraError(
-        "Camera access is not available here. Open this page in a modern browser over HTTPS and try again.",
-      );
-      return;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: {
-          facingMode: { ideal: "user" },
-          width: { ideal: 1280 },
-          height: { ideal: 960 },
-        },
-      });
-      streamRef.current?.getTracks().forEach((track) => track.stop());
-      streamRef.current = stream;
-      setCameraReady(true);
-    } catch (error) {
-      if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
-        setCameraError("Camera permission was not granted. You can try again whenever you’re ready.");
-      } else if (error.name === "NotFoundError" || error.name === "DevicesNotFoundError") {
-        setCameraError("No camera was found on this device.");
-      } else if (error.name === "NotReadableError" || error.name === "TrackStartError") {
-        setCameraError("The camera may already be in use by another app. Close it there and try again.");
-      } else {
-        setCameraError("The camera couldn’t be opened. Please check your browser settings and try again.");
-      }
-    }
-  }
-
-  function stopCamera() {
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
-    setCameraReady(false);
-  }
-
   function removeMemoryPhoto(src) {
     const remaining = loadedMemoryPhotos.filter((photo) => photo.src !== src);
     setLoadedMemoryPhotos(remaining);
     setMemoryIndex((index) => (remaining.length ? index % remaining.length : 0));
     setMemoryLoadFailed(true);
-  }
-
-  function moveMemory(offset) {
-    setMemoryIndex((index) => (
-      (index + offset + loadedMemoryPhotos.length) % loadedMemoryPhotos.length
-    ));
-  }
-
-  function continueToKeepsake(wasSent, notice = "") {
-    stopCamera();
-    clearCapturedPhoto();
-    setEmailSent(wasSent);
-    setEmailNotice(notice);
-    setPage("thank-you");
-  }
-
-  function clearCapturedPhoto() {
-    if (photoPreviewUrlRef.current) {
-      URL.revokeObjectURL(photoPreviewUrlRef.current);
-      photoPreviewUrlRef.current = "";
-    }
-    setPhotoBlob(null);
-    setPhotoPreviewUrl("");
-    setPreviewError(false);
-  }
-
-  function capturePhoto() {
-    const video = videoRef.current;
-    if (!video || !video.videoWidth || !video.videoHeight) {
-      setCameraError("The camera is still getting ready. Please wait a moment and try again.");
-      return;
-    }
-
-    const maxWidth = 900;
-    const scale = Math.min(1, maxWidth / video.videoWidth);
-    const canvas = document.createElement("canvas");
-    const photoWidth = Math.round(video.videoWidth * scale);
-    const photoHeight = photoWidth;
-    const border = Math.round(photoWidth * 0.045);
-    const captionHeight = Math.round(photoWidth * 0.2);
-    canvas.width = photoWidth + border * 2;
-    canvas.height = photoHeight + border * 2 + captionHeight;
-
-    const context = canvas.getContext("2d");
-    if (!context) {
-      setCameraError("This browser couldn’t prepare the photo. Please try another browser.");
-      return;
-    }
-
-    context.fillStyle = "#fffdf9";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.save();
-    context.beginPath();
-    context.rect(border, border, photoWidth, photoHeight);
-    context.clip();
-    const sourceRatio = video.videoWidth / video.videoHeight;
-    const targetRatio = photoWidth / photoHeight;
-    let sourceX = 0;
-    let sourceY = 0;
-    let sourceWidth = video.videoWidth;
-    let sourceHeight = video.videoHeight;
-    if (sourceRatio > targetRatio) {
-      sourceWidth = video.videoHeight * targetRatio;
-      sourceX = (video.videoWidth - sourceWidth) / 2;
-    } else {
-      sourceHeight = video.videoWidth / targetRatio;
-      sourceY = (video.videoHeight - sourceHeight) / 2;
-    }
-    context.translate(border + photoWidth, border);
-    context.scale(-1, 1);
-    context.drawImage(video, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, photoWidth, photoHeight);
-    context.restore();
-
-    context.fillStyle = "#633b4c";
-    context.font = `italic ${Math.round(photoWidth * 0.055)}px Georgia, serif`;
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.fillText(
-      "a little moment to keep ♡",
-      canvas.width / 2,
-      border + photoHeight + captionHeight / 2,
-    );
-    setCapturingPhoto(true);
-    canvas.toBlob((blob) => {
-      setCapturingPhoto(false);
-      if (!blob) {
-        setCameraError("This browser couldn’t save the photo. Please try taking it again.");
-        return;
-      }
-
-      stopCamera();
-      setPhotoBlob(blob);
-      const previewUrl = URL.createObjectURL(blob);
-      photoPreviewUrlRef.current = previewUrl;
-      setPhotoPreviewUrl(previewUrl);
-      setPreviewError(false);
-      setSendError("");
-    }, "image/jpeg", 0.82);
-  }
-
-  async function sendPhoto() {
-    setSending(true);
-    setSendError("");
-    try {
-      if (!photoBlob) {
-        throw new Error("Please take a selfie before continuing.");
-      }
-
-      if (!API_URL) {
-        continueToKeepsake(false, "Email isn’t configured, so the selfie wasn’t sent.");
-        return;
-      }
-
-      const photoData = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result !== "string") {
-            reject(new Error("The photo couldn’t be prepared for sending."));
-            return;
-          }
-          resolve(reader.result);
-        };
-        reader.onerror = () => reject(reader.error || new Error("The photo couldn’t be read."));
-        reader.readAsDataURL(photoBlob);
-      });
-
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ photo: photoData }),
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(result.error || "The photo couldn’t be sent. Please try again.");
-      }
-
-      continueToKeepsake(true);
-    } catch (error) {
-      setSendError(error.message || "The photo couldn’t be sent. Please check your connection and try again.");
-    } finally {
-      setSending(false);
-    }
-  }
-
-  function goBackToLetter() {
-    stopCamera();
-    clearCapturedPhoto();
-    setCameraError("");
-    setSendError("");
-    setPage("letter");
   }
 
   return (
@@ -353,11 +128,8 @@ function App() {
                 className="button button-primary accept-button"
                 style={{ "--accept-scale": 1 + acceptClicks * 0.18 }}
                 onClick={() => {
-                  setPage("camera");
+                  setPage("thank-you");
                   setAcceptClicks(0);
-                  setCameraError("");
-                  setSendError("");
-                  clearCapturedPhoto();
                 }}
               >
                 I accept <span aria-hidden="true">♡</span>
@@ -375,107 +147,14 @@ function App() {
           </section>
         )}
 
-        {page === "camera" && (
-          <section className="camera-panel" aria-labelledby="camera-title">
-            <p className="eyebrow">ONE LITTLE KEEPSAKE</p>
-            <h1 id="camera-title">A selfie, only if you’d like.</h1>
-            <p className="camera-copy">
-              Take a little selfie to remember this moment. You’ll get to see it first.
-            </p>
-
-            <div className={`camera-frame${photoPreviewUrl ? " has-photo" : ""}`}>
-              {photoPreviewUrl ? (
-                previewError ? (
-                  <div className="camera-placeholder" role="alert">
-                    <span className="camera-icon" aria-hidden="true">◎</span>
-                    <span>The preview couldn’t be displayed. Retake your selfie to try again.</span>
-                  </div>
-                ) : (
-                  <img
-                    className="photo-preview"
-                    src={photoPreviewUrl}
-                    alt="Your selfie preview"
-                    onError={() => setPreviewError(true)}
-                  />
-                )
-              ) : cameraReady ? (
-                <video ref={videoRef} className="camera-video" autoPlay playsInline muted />
-              ) : (
-                <div className="camera-placeholder">
-                  <span className="camera-icon" aria-hidden="true">◎</span>
-                  <span>Your camera preview will appear here</span>
-                </div>
-              )}
-            </div>
-
-            {cameraError && <p className="feedback error" role="alert">{cameraError}</p>}
-            {sendError && <p className="feedback error" role="alert">{sendError}</p>}
-
-            {!photoPreviewUrl && !cameraReady && (
-              <button className="button button-primary" onClick={startCamera}>
-                Turn on camera
-              </button>
-            )}
-            {!photoPreviewUrl && cameraReady && (
-              <button className="button button-primary" onClick={capturePhoto} disabled={capturingPhoto}>
-                {capturingPhoto ? "Saving…" : "Take selfie"}
-              </button>
-            )}
-            {photoPreviewUrl && (
-              <div className="choice-row">
-                <button
-                  className="button button-soft"
-                  onClick={() => {
-                    clearCapturedPhoto();
-                    setSendError("");
-                  }}
-                  disabled={sending}
-                >
-                  Retake
-                </button>
-                <button
-                  className="button button-primary"
-                  onClick={sendPhoto}
-                  disabled={sending}
-                >
-                  {sending ? "Sending…" : "Done"}
-                </button>
-              </div>
-            )}
-
-            {!API_URL && (
-              <p className="setup-note">
-                Email isn’t set up yet, but you can still continue.
-              </p>
-            )}
-            {sendError && (
-              <button
-                className="text-button"
-                onClick={() => continueToKeepsake(false, "The email didn’t go through, so the selfie wasn’t sent.")}
-                disabled={sending}
-              >
-                Continue without email
-              </button>
-            )}
-            <button className="text-button" onClick={goBackToLetter} disabled={sending}>
-              ← Back to the letter
-            </button>
-          </section>
-        )}
-
         {page === "thank-you" && (
           <section className="message-panel" aria-labelledby="thank-you-title">
             <div className="illustration-heart" aria-hidden="true">♥</div>
             <p className="eyebrow">A MOMENT TO KEEP</p>
             <h1 id="thank-you-title">Thank you, Baby Jelay.</h1>
             <p className="intro-copy">
-              {emailSent
-                ? "Your selfie has been sent to Jared. Thank you for giving this moment a chance."
-                : "Thank you for sharing this moment. I’ll keep working on my apology."}
+              Thank you for sharing this moment. I’ll keep working on my apology.
             </p>
-            {!emailSent && emailNotice && (
-              <p className="memory-load-message" role="status">{emailNotice}</p>
-            )}
             {loadedMemoryPhotos.length > 0 ? (
               <>
                 <p className="memory-caption" aria-live="polite">
@@ -505,22 +184,6 @@ function App() {
                       </figure>
                     );
                   })}
-                </div>
-                <div className="memory-controls" aria-label="Photo carousel controls">
-                  <button
-                    className="memory-control"
-                    onClick={() => moveMemory(-1)}
-                    aria-label="Previous memory"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    className="memory-control"
-                    onClick={() => moveMemory(1)}
-                    aria-label="Next memory"
-                  >
-                    Next
-                  </button>
                 </div>
               </>
             ) : (
