@@ -1,6 +1,6 @@
 # A Little Apology
 
-A small, responsive React apology page for Jared and Baby Jelay. The recipient can accept or ask for more time. If she accepts, she may choose to open the camera, review a Polaroid-style selfie, and press **Done** to explicitly send it to Jared. After a successful send, seven shared photos appear in an animated Polaroid stack. The gallery preloads the photos and skips any that fail to load. Camera access and email sending require separate user actions.
+A small, responsive React apology page for Jared and Baby Jelay. The recipient can accept or ask for more time. If she accepts, she may choose to open the camera, review a Polaroid-style selfie, and press **Done** to explicitly send it to Jared. After finishing, seven shared photos appear together in a centered gallery. The gallery preloads the photos and skips any that fail to load. Camera access and email sending require separate user actions.
 
 ## Run locally
 
@@ -9,7 +9,7 @@ npm ci
 npm run dev
 ```
 
-Camera access requires HTTPS or `localhost`. In production, the **Done** button sends the reviewed Polaroid to the same-origin Vercel API after its email environment variables are configured. Local development leaves email sending unavailable by default.
+Camera access requires HTTPS or `localhost`. In production, the **Done** button sends the reviewed Polaroid to the same-origin Vercel API after its email environment variables are configured. If email isn’t configured, **Done** still lets the visitor continue to the gallery and clearly explains that the selfie wasn’t emailed.
 
 ## Deploy the site and API to Vercel
 

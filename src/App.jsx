@@ -16,9 +16,10 @@ const memoryPhotos = [
 function App() {
   const [page, setPage] = useState("welcome");
   const [acceptClicks, setAcceptClicks] = useState(0);
-  const [memoryIndex, setMemoryIndex] = useState(0);
   const [loadedMemoryPhotos, setLoadedMemoryPhotos] = useState([]);
   const [memoryLoadFailed, setMemoryLoadFailed] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailNotice, setEmailNotice] = useState("");
   const [cameraReady, setCameraReady] = useState(false);
   const [photoBlob, setPhotoBlob] = useState(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState("");
@@ -29,6 +30,7 @@ function App() {
   const [sending, setSending] = useState(false);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  const photoPreviewUrlRef = useRef("");
 
   useEffect(() => {
     const video = videoRef.current;
@@ -47,11 +49,6 @@ function App() {
     },
     [],
   );
-
-  useEffect(() => {
-    if (!photoPreviewUrl) return undefined;
-    return () => URL.revokeObjectURL(photoPreviewUrl);
-  }, [photoPreviewUrl]);
 
   useEffect(() => {
     let active = true;
@@ -73,22 +70,6 @@ function App() {
       active = false;
     };
   }, []);
-
-  useEffect(() => {
-    if (
-      page !== "thank-you"
-      || loadedMemoryPhotos.length < 2
-      || window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      return undefined;
-    }
-
-    const timer = window.setInterval(() => {
-      setMemoryIndex((index) => (index + 1) % loadedMemoryPhotos.length);
-    }, 2400);
-
-    return () => window.clearInterval(timer);
-  }, [page, loadedMemoryPhotos.length]);
 
   async function startCamera() {
     setCameraError("");
@@ -134,11 +115,22 @@ function App() {
   function removeMemoryPhoto(src) {
     const remaining = loadedMemoryPhotos.filter((photo) => photo.src !== src);
     setLoadedMemoryPhotos(remaining);
-    setMemoryIndex((index) => remaining.length ? index % remaining.length : 0);
     setMemoryLoadFailed(true);
   }
 
+  function continueToKeepsake(wasSent, notice = "") {
+    stopCamera();
+    clearCapturedPhoto();
+    setEmailSent(wasSent);
+    setEmailNotice(notice);
+    setPage("thank-you");
+  }
+
   function clearCapturedPhoto() {
+    if (photoPreviewUrlRef.current) {
+      URL.revokeObjectURL(photoPreviewUrlRef.current);
+      photoPreviewUrlRef.current = "";
+    }
     setPhotoBlob(null);
     setPhotoPreviewUrl("");
     setPreviewError(false);
@@ -210,23 +202,25 @@ function App() {
 
       stopCamera();
       setPhotoBlob(blob);
-      setPhotoPreviewUrl(URL.createObjectURL(blob));
+      const previewUrl = URL.createObjectURL(blob);
+      photoPreviewUrlRef.current = previewUrl;
+      setPhotoPreviewUrl(previewUrl);
       setPreviewError(false);
       setSendError("");
     }, "image/jpeg", 0.82);
   }
 
   async function sendPhoto() {
-    if (!API_URL) {
-      setSendError("The email service hasn’t been connected yet. Please ask Jared to finish the setup.");
-      return;
-    }
-
     setSending(true);
     setSendError("");
     try {
       if (!photoBlob) {
         throw new Error("Please take a selfie before continuing.");
+      }
+
+      if (!API_URL) {
+        continueToKeepsake(false, "Email isn’t configured, so the selfie wasn’t sent.");
+        return;
       }
 
       const photoData = await new Promise((resolve, reject) => {
@@ -252,9 +246,7 @@ function App() {
         throw new Error(result.error || "The photo couldn’t be sent. Please try again.");
       }
 
-      stopCamera();
-      setMemoryIndex(0);
-      setPage("thank-you");
+      continueToKeepsake(true);
     } catch (error) {
       setSendError(error.message || "The photo couldn’t be sent. Please check your connection and try again.");
     } finally {
@@ -264,7 +256,7 @@ function App() {
 
   function goBackToLetter() {
     stopCamera();
-    setPhoto("");
+    clearCapturedPhoto();
     setCameraError("");
     setSendError("");
     setPage("letter");
@@ -407,7 +399,9 @@ function App() {
             )}
             {photoPreviewUrl && (
               <>
-                <p className="privacy-note">Press “Done” to send this selfie to Jared.</p>
+                <p className="privacy-note">
+                  Press “Done” to continue. If email is configured, this Polaroid will be emailed to Jared.
+                </p>
                 <div className="choice-row">
                   <button
                     className="button button-soft"
@@ -422,7 +416,7 @@ function App() {
                   <button
                     className="button button-primary"
                     onClick={sendPhoto}
-                    disabled={sending || !API_URL || previewError}
+                    disabled={sending}
                   >
                     {sending ? "Sending…" : "Done"}
                   </button>
@@ -432,8 +426,17 @@ function App() {
 
             {!API_URL && (
               <p className="setup-note">
-                This keepsake is still being set up.
+                Email isn’t set up yet, but you can still continue.
               </p>
+            )}
+            {sendError && (
+              <button
+                className="text-button"
+                onClick={() => continueToKeepsake(false, "The email didn’t go through, so the selfie wasn’t sent.")}
+                disabled={sending}
+              >
+                Continue without email
+              </button>
             )}
             <button className="text-button" onClick={goBackToLetter} disabled={sending}>
               ← Back to the letter
@@ -447,48 +450,43 @@ function App() {
             <p className="eyebrow">A MOMENT TO KEEP</p>
             <h1 id="thank-you-title">Thank you, Baby Jelay.</h1>
             <p className="intro-copy">
-              Your selfie has been sent to Jared. Thank you for giving this
-              moment a chance.
+              {emailSent
+                ? "Your selfie has been sent to Jared. Thank you for giving this moment a chance."
+                : "Thank you for sharing this moment. I’ll keep working on my apology."}
             </p>
-            <p className="memory-caption" aria-live="polite">
-              {loadedMemoryPhotos.length > 0
-                ? `A few of my favorite moments · ${memoryIndex + 1} / ${loadedMemoryPhotos.length}`
-                : "Loading a few favorite moments…"}
-            </p>
+            {!emailSent && emailNotice && (
+              <p className="memory-load-message" role="status">{emailNotice}</p>
+            )}
             {loadedMemoryPhotos.length > 0 ? (
-              <div className="memory-stage" aria-label="Favorite memories together">
-                {(loadedMemoryPhotos.length > 1 ? [-1, 1, 0] : [0]).map((offset) => {
-                  const index = (
-                    memoryIndex + offset + loadedMemoryPhotos.length
-                  ) % loadedMemoryPhotos.length;
-                  const memory = loadedMemoryPhotos[index];
-                  const position = offset === 0 ? "active" : offset < 0 ? "previous" : "next";
-                  return (
+              <>
+                <p className="memory-caption">A few of my favorite moments</p>
+                <div className="memory-gallery" aria-label="All seven favorite memories together">
+                  {loadedMemoryPhotos.map((memory, index) => (
                     <figure
-                      className={`memory-card memory-card-${position}`}
-                      key={position}
-                      aria-hidden={position !== "active"}
+                      className="memory-gallery-card"
+                      key={memory.src}
+                      style={{ "--memory-delay": `${index * 70}ms` }}
                     >
                       <img
                         src={memory.src}
-                        alt={position === "active" ? memory.caption : ""}
-                        decoding="sync"
+                        alt={memory.caption}
                         loading="eager"
+                        decoding="async"
                         onError={() => removeMemoryPhoto(memory.src)}
                       />
                       <figcaption>{memory.caption}</figcaption>
                     </figure>
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+              </>
             ) : (
               <p className="memory-load-message" role="status">
                 Your keepsake photos are taking a little longer to load.
               </p>
             )}
-            {memoryLoadFailed && loadedMemoryPhotos.length > 0 && (
+            {memoryLoadFailed && (
               <p className="memory-load-message" role="status">
-                A few photos couldn’t load, so the memories that did are shown.
+                Some photos couldn’t load. The available memories are shown above.
               </p>
             )}
             <p className="signature closing-signature">Always yours, Jared <span aria-hidden="true">♡</span></p>
